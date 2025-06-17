@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwipeShop Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+      .admin-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .stat-card {
+        transition: transform 0.2s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+      .loading {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 min-h-screen"
+  >
+    <!-- Header -->
+    <header
+      class="bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50"
+    >
+      <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="admin-card p-2.5 rounded-xl">
+              <i data-lucide="shield" class="w-7 h-7 text-white"></i>
+            </div>
+            <div>
+              <h1
+                class="text-2xl font-bold bg-gradient-to-r from-slate-700 to-purple-600 bg-clip-text text-transparent"
+              >
+                SwipeShop Admin
+              </h1>
+              <p class="text-sm text-gray-500 flex items-center gap-1">
+                <i data-lucide="database" class="w-4 h-4"></i>
+                Complete Data Management System
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              onclick="refreshData()"
+              class="px-4 py-2 border border-purple-200 rounded-lg hover:bg-purple-50 text-purple-600 flex items-center gap-2"
+            >
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              Refresh
+            </button>
+            <button
+              onclick="goToApp()"
+              class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-2"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              Back to App
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white/60 border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-6 py-3">
+        <div class="flex flex-wrap gap-2" id="navigation">
+          <!-- Navigation will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <div id="content" class="fade-in">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Global state
+      let currentSection = "overview";
+      let appData = {
+        products: [],
+        interactions: [],
+        sessions: [],
+        stats: [],
+        config: {
+          siteName: "SwipeShop",
+          currency: "USD",
+          timezone: "UTC",
+          maintenanceMode: false,
+          maxProductsPerSession: 50,
+          featuredCollections: ["Electronics", "Fashion", "Home"],
+          priceRange: { min: 0, max: 1000 },
+        },
+        lastUpdated: new Date(),
+      };
+
+      // Load data from localStorage
+      function loadData() {
+        try {
+          const savedStats = localStorage.getItem("swipeshop_stats");
+          const savedInteractions = localStorage.getItem(
+            "swipeshop_interactions",
+          );
+          const savedProducts = localStorage.getItem("swipeshop_products");
+
+          if (savedStats) appData.stats = JSON.parse(savedStats);
+          if (savedInteractions) {
+            appData.interactions = JSON.parse(savedInteractions).map((i) => ({
+              ...i,
+              timestamp: new Date(i.timestamp),
+            }));
+          }
+          if (savedProducts) appData.products = JSON.parse(savedProducts);
+
+          // If no data, create sample data
+          if (appData.products.length === 0) {
+            createSampleData();
+          }
+        } catch (error) {
+          console.error("Error loading data:", error);
+          createSampleData();
+        }
+      }
+
+      // Create sample data
+      function createSampleData() {
+        appData.products = [
+          {
+            id: "1",
+            title: "Premium Wireless Headphones",
+            description:
+              "High-quality wireless headphones with noise cancellation",
+            price: 299.99,
+            collection: "Electronics",
+            vendor: "AudioTech",
+            available: true,
+            images: [
+              "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop",
+            ],
+          },
+          {
+            id: "2",
+            title: "Minimalist Watch",
+            description: "Elegant timepiece with clean design",
+            price: 189.99,
+            collection: "Fashion",
+            vendor: "TimeStyle",
+            available: true,
+            images: [
+              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop",
+            ],
+          },
+          {
+            id: "3",
+            title: "Smart Home Speaker",
+            description: "Voice-controlled smart speaker",
+            price: 129.99,
+            collection: "Electronics",
+            vendor: "SmartTech",
+            available: true,
+            images: [
+              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop",
+            ],
+          },
+        ];
+
+        // Create sample interactions
+        appData.interactions = [
+          {
+            productId: "1",
+            action: "like",
+            timestamp: new Date(Date.now() - 1000 * 60 * 30),
+          },
+          {
+            productId: "1",
+            action: "Love It",
+            timestamp: new Date(Date.now() - 1000 * 60 * 20),
+          },
+          {
+            productId: "2",
+            action: "like",
+            timestamp: new Date(Date.now() - 1000 * 60 * 15),
+          },
+          {
+            productId: "2",
+            action: "dislike",
+            timestamp: new Date(Date.now() - 1000 * 60 * 10),
+          },
+          {
+            productId: "3",
+            action: "Love It",
+            timestamp: new Date(Date.now() - 1000 * 60 * 5),
+          },
+        ];
+
+        // Create sample stats
+        appData.stats = [
+          { productId: "1", likes: 5, dislikes: 1, "Love It": 3 },
+          { productId: "2", likes: 3, dislikes: 2, "Love It": 1 },
+          { productId: "3", likes: 4, dislikes: 0, "Love It": 2 },
+        ];
+
+        saveData();
+      }
+
+      // Save data to localStorage
+      function saveData() {
+        try {
+          localStorage.setItem(
+            "swipeshop_stats",
+            JSON.stringify(appData.stats),
+          );
+          localStorage.setItem(
+            "swipeshop_interactions",
+            JSON.stringify(appData.interactions),
+          );
+          localStorage.setItem(
+            "swipeshop_products",
+            JSON.stringify(appData.products),
+          );
+          localStorage.setItem(
+            "swipeshop_config",
+            JSON.stringify(appData.config),
+          );
+        } catch (error) {
+          console.error("Error saving data:", error);
+        }
+      }
+
+      // Navigation items
+      const navItems = [
+        { id: "overview", label: "Overview", icon: "bar-chart-3" },
+        { id: "products", label: "Products", icon: "package" },
+        { id: "analytics", label: "Analytics", icon: "trending-up" },
+        { id: "data", label: "Data Export", icon: "download" },
+        { id: "config", label: "Configuration", icon: "settings" },
+      ];
+
+      // Render navigation
+      function renderNavigation() {
+        const nav = document.getElementById("navigation");
+        nav.innerHTML = navItems
+          .map(
+            (item) => `
+                <button onclick="changeSection('${item.id}')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                          currentSection === item.id
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
+                            : "bg-white/60 hover:bg-white/80 text-slate-700 border border-slate-200"
+                        }">
+                    <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                    <span class="font-medium text-sm">${item.label}</span>
+                </button>
+            `,
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      // Change section
+      function changeSection(section) {
+        currentSection = section;
+        renderNavigation();
+        renderContent();
+      }
+
+      // Render content based on current section
+      function renderContent() {
+        const content = document.getElementById("content");
+
+        switch (currentSection) {
+          case "overview":
+            content.innerHTML = renderOverview();
+            break;
+          case "products":
+            content.innerHTML = renderProducts();
+            break;
+          case "analytics":
+            content.innerHTML = renderAnalytics();
+            break;
+          case "data":
+            content.innerHTML = renderDataExport();
+            break;
+          case "config":
+            content.innerHTML = renderConfig();
+            break;
+          default:
+            content.innerHTML = renderOverview();
+        }
+
+        content.className = "fade-in";
+        lucide.createIcons();
+      }
+
+      // Render overview section
+      function renderOverview() {
+        const totalInteractions = appData.interactions.length;
+        const totalProducts = appData.products.length;
+        const totalStats = appData.stats.reduce(
+          (acc, stat) => ({
+            likes: acc.likes + stat.likes,
+            dislikes: acc.dislikes + stat.dislikes,
+            loveIt: acc.loveIt + stat["Love It"],
+          }),
+          { likes: 0, dislikes: 0, loveIt: 0 },
+        );
+
+        return `
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                            Dashboard Overview
+                        </h2>
+                        <p class="text-gray-600">Complete view of your SwipeShop performance</p>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="stat-card bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Products</p>
+                                    <p class="text-2xl font-bold text-blue-600">${totalProducts}</p>
+                                </div>
+                                <i data-lucide="package" class="w-8 h-8 text-blue-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="stat-card bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Interactions</p>
+                                    <p class="text-2xl font-bold text-purple-600">${totalInteractions}</p>
+                                </div>
+                                <i data-lucide="activity" class="w-8 h-8 text-purple-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="stat-card bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Likes</p>
+                                    <p class="text-2xl font-bold text-green-600">${totalStats.likes}</p>
+                                </div>
+                                <i data-lucide="heart" class="w-8 h-8 text-green-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="stat-card bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Love Its</p>
+                                    <p class="text-2xl font-bold text-pink-600">${totalStats.loveIt}</p>
+                                </div>
+                                <i data-lucide="star" class="w-8 h-8 text-pink-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                            Recent Activity
+                        </h3>
+                        <div class="space-y-3">
+                            ${appData.interactions
+                              .slice(-5)
+                              .reverse()
+                              .map((interaction) => {
+                                const product = appData.products.find(
+                                  (p) => p.id === interaction.productId,
+                                );
+                                const actionColor =
+                                  interaction.action === "like"
+                                    ? "text-green-600"
+                                    : interaction.action === "Love It"
+                                      ? "text-purple-600"
+                                      : "text-red-600";
+                                const actionIcon =
+                                  interaction.action === "like"
+                                    ? "heart"
+                                    : interaction.action === "Love It"
+                                      ? "star"
+                                      : "x";
+
+                                return `
+                                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <i data-lucide="${actionIcon}" class="w-4 h-4 ${actionColor}"></i>
+                                        <div class="flex-1">
+                                            <span class="font-medium">${interaction.action}</span> 
+                                            on <span class="text-gray-600">${product?.title || "Unknown Product"}</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500">${interaction.timestamp.toLocaleTimeString()}</span>
+                                    </div>
+                                `;
+                              })
+                              .join("")}
+                        </div>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            Top Performing Products
+                        </h3>
+                        <div class="space-y-3">
+                            ${appData.stats
+                              .map((stat, index) => {
+                                const product = appData.products.find(
+                                  (p) => p.id === stat.productId,
+                                );
+                                const total =
+                                  stat.likes + stat.dislikes + stat["Love It"];
+                                const engagement =
+                                  total > 0
+                                    ? Math.round(
+                                        ((stat.likes + stat["Love It"]) /
+                                          total) *
+                                          100,
+                                      )
+                                    : 0;
+
+                                return `
+                                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold text-sm">
+                                            #${index + 1}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">${product?.title || "Unknown Product"}</div>
+                                            <div class="text-sm text-gray-500">${total} interactions • ${engagement}% engagement</div>
+                                        </div>
+                                        <div class="flex gap-2 text-sm">
+                                            <span class="text-green-600">👍 ${stat.likes}</span>
+                                            <span class="text-purple-600">💜 ${stat["Love It"]}</span>
+                                            <span class="text-red-600">👎 ${stat.dislikes}</span>
+                                        </div>
+                                    </div>
+                                `;
+                              })
+                              .join("")}
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      // Render products section
+      function renderProducts() {
+        return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                <i data-lucide="package" class="w-6 h-6"></i>
+                                Product Management
+                            </h2>
+                            <p class="text-gray-600">Manage your product catalog and performance</p>
+                        </div>
+                        <button onclick="addNewProduct()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Add Product
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${appData.products
+                          .map((product) => {
+                            const stats = appData.stats.find(
+                              (s) => s.productId === product.id,
+                            ) || { likes: 0, dislikes: 0, "Love It": 0 };
+                            const total =
+                              stats.likes + stats.dislikes + stats["Love It"];
+                            const engagement =
+                              total > 0
+                                ? Math.round(
+                                    ((stats.likes + stats["Love It"]) / total) *
+                                      100,
+                                  )
+                                : 0;
+
+                            return `
+                                <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                    <div class="p-4">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-lg truncate">${product.title}</h3>
+                                                <p class="text-sm text-gray-500">${product.vendor} • ${product.collection}</p>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-xs ${product.available ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}">
+                                                ${product.available ? "Available" : "Unavailable"}
+                                            </span>
+                                        </div>
+
+                                        ${
+                                          product.images && product.images[0]
+                                            ? `
+                                            <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-3">
+                                                <img src="${product.images[0]}" alt="${product.title}" class="w-full h-full object-cover">
+                                            </div>
+                                        `
+                                            : ""
+                                        }
+
+                                        <div class="space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-lg font-bold">$${product.price}</span>
+                                                <span class="text-sm text-gray-500">${total} interactions</span>
+                                            </div>
+
+                                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                                <div class="text-center">
+                                                    <div class="font-medium text-green-600">${stats.likes}</div>
+                                                    <div class="text-gray-500">Likes</div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div class="font-medium text-purple-600">${stats["Love It"]}</div>
+                                                    <div class="text-gray-500">Love It</div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div class="font-medium text-red-600">${stats.dislikes}</div>
+                                                    <div class="text-gray-500">Dislikes</div>
+                                                </div>
+                                            </div>
+
+                                            ${
+                                              total > 0
+                                                ? `
+                                                <div class="flex items-center gap-2 text-sm">
+                                                    <i data-lucide="trending-up" class="w-4 h-4 text-blue-500"></i>
+                                                    <span class="text-gray-600">Engagement:</span>
+                                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">${engagement}%</span>
+                                                </div>
+                                            `
+                                                : ""
+                                            }
+
+                                            <div class="flex gap-2 pt-2 border-t">
+                                                <button onclick="editProduct('${product.id}')" class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 flex items-center justify-center gap-2">
+                                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                                    Edit
+                                                </button>
+                                                <button onclick="deleteProduct('${product.id}')" class="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 rounded text-sm">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                          })
+                          .join("")}
+                    </div>
+                </div>
+            `;
+      }
+
+      // Render analytics section
+      function renderAnalytics() {
+        const actionBreakdown = appData.interactions.reduce(
+          (acc, interaction) => {
+            acc[interaction.action] = (acc[interaction.action] || 0) + 1;
+            return acc;
+          },
+          {},
+        );
+
+        const total = Object.values(actionBreakdown).reduce((a, b) => a + b, 0);
+
+        return `
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                            Advanced Analytics
+                        </h2>
+                        <p class="text-gray-600">Deep insights into user behavior and product performance</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Action Breakdown -->
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                                User Actions Breakdown
+                            </h3>
+                            <div class="space-y-4">
+                                ${Object.entries(actionBreakdown)
+                                  .map(([action, count]) => {
+                                    const percentage =
+                                      total > 0
+                                        ? ((count / total) * 100).toFixed(1)
+                                        : 0;
+                                    const actionConfig = {
+                                      like: {
+                                        color: "green",
+                                        icon: "heart",
+                                        label: "Likes",
+                                      },
+                                      dislike: {
+                                        color: "red",
+                                        icon: "x",
+                                        label: "Dislikes",
+                                      },
+                                      "Love It": {
+                                        color: "purple",
+                                        icon: "star",
+                                        label: "Love It",
+                                      },
+                                    }[action] || {
+                                      color: "gray",
+                                      icon: "activity",
+                                      label: action,
+                                    };
+
+                                    return `
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="${actionConfig.icon}" class="w-4 h-4 text-${actionConfig.color}-600"></i>
+                                                    <span class="text-sm font-medium">${actionConfig.label}</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-sm text-gray-600">${count}</span>
+                                                    <span class="text-xs px-2 py-1 bg-gray-100 rounded">${percentage}%</span>
+                                                </div>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-${actionConfig.color}-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                  })
+                                  .join("")}
+                            </div>
+                        </div>
+
+                        <!-- Recent Interactions Timeline -->
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="clock" class="w-5 h-5"></i>
+                                Recent Interactions Timeline
+                            </h3>
+                            <div class="space-y-3 max-h-64 overflow-y-auto">
+                                ${appData.interactions
+                                  .slice(-10)
+                                  .reverse()
+                                  .map((interaction) => {
+                                    const product = appData.products.find(
+                                      (p) => p.id === interaction.productId,
+                                    );
+                                    const actionConfig = {
+                                      like: { color: "green", icon: "heart" },
+                                      dislike: { color: "red", icon: "x" },
+                                      "Love It": {
+                                        color: "purple",
+                                        icon: "star",
+                                      },
+                                    }[interaction.action] || {
+                                      color: "gray",
+                                      icon: "activity",
+                                    };
+
+                                    return `
+                                        <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                                            <i data-lucide="${actionConfig.icon}" class="w-4 h-4 text-${actionConfig.color}-600"></i>
+                                            <div class="flex-1">
+                                                <span class="text-sm">${interaction.action} on </span>
+                                                <span class="font-medium text-sm">${product?.title || "Unknown Product"}</span>
+                                            </div>
+                                            <span class="text-xs text-gray-500">${interaction.timestamp.toLocaleTimeString()}</span>
+                                        </div>
+                                    `;
+                                  })
+                                  .join("")}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Performance Chart -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            Product Performance Ranking
+                        </h3>
+                        <div class="space-y-3">
+                            ${appData.stats
+                              .sort((a, b) => {
+                                const totalA =
+                                  a.likes + a.dislikes + a["Love It"];
+                                const totalB =
+                                  b.likes + b.dislikes + b["Love It"];
+                                return totalB - totalA;
+                              })
+                              .map((stat, index) => {
+                                const product = appData.products.find(
+                                  (p) => p.id === stat.productId,
+                                );
+                                const total =
+                                  stat.likes + stat.dislikes + stat["Love It"];
+                                const engagement =
+                                  total > 0
+                                    ? Math.round(
+                                        ((stat.likes + stat["Love It"]) /
+                                          total) *
+                                          100,
+                                      )
+                                    : 0;
+                                const maxTotal = Math.max(
+                                  ...appData.stats.map(
+                                    (s) => s.likes + s.dislikes + s["Love It"],
+                                  ),
+                                );
+                                const width =
+                                  maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+                                return `
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                <span class="w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-xs font-bold">
+                                                    ${index + 1}
+                                                </span>
+                                                <span class="font-medium">${product?.title || "Unknown Product"}</span>
+                                            </div>
+                                            <div class="flex items-center gap-4 text-sm">
+                                                <span class="text-gray-600">${total} interactions</span>
+                                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">${engagement}% engagement</span>
+                                            </div>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full" style="width: ${width}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                              })
+                              .join("")}
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      // Render data export section
+      function renderDataExport() {
+        return `
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="download" class="w-6 h-6"></i>
+                            Data Export & Management
+                        </h2>
+                        <p class="text-gray-600">Export your data for analysis or backup</p>
+                    </div>
+
+                    <!-- Data Summary -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600">${appData.products.length}</div>
+                            <div class="text-sm text-gray-500">Products</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600">${appData.interactions.length}</div>
+                            <div class="text-sm text-gray-500">Interactions</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600">${appData.stats.length}</div>
+                            <div class="text-sm text-gray-500">Stats Records</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600">${appData.lastUpdated.toLocaleDateString()}</div>
+                            <div class="text-sm text-gray-500">Last Updated</div>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="database" class="w-8 h-8 text-purple-600"></i>
+                                <div>
+                                    <h3 class="font-semibold">Complete Dataset</h3>
+                                    <p class="text-sm text-gray-500">Full backup with all data</p>
+                                </div>
+                            </div>
+                            <button onclick="exportData('complete')" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Export JSON
+                            </button>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="activity" class="w-8 h-8 text-green-600"></i>
+                                <div>
+                                    <h3 class="font-semibold">Interactions</h3>
+                                    <p class="text-sm text-gray-500">User behavior data</p>
+                                </div>
+                            </div>
+                            <button onclick="exportData('interactions')" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Export CSV
+                            </button>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="package" class="w-8 h-8 text-blue-600"></i>
+                                <div>
+                                    <h3 class="font-semibold">Products</h3>
+                                    <p class="text-sm text-gray-500">Product catalog data</p>
+                                </div>
+                            </div>
+                            <button onclick="exportData('products')" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clear Data Section -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div class="flex items-start gap-4">
+                            <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 flex-shrink-0 mt-1"></i>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-red-900">Danger Zone</h3>
+                                <p class="text-sm text-red-700 mt-1">
+                                    Permanently delete all stored data. This action cannot be undone.
+                                </p>
+                                <button onclick="clearAllData()" class="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Clear All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      // Render config section
+      function renderConfig() {
+        return `
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-6 h-6"></i>
+                            Application Configuration
+                        </h2>
+                        <p class="text-gray-600">Customize your application settings</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- General Settings -->
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="globe" class="w-5 h-5"></i>
+                                General Settings
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+                                    <input type="text" value="${appData.config.siteName}" onchange="updateConfig('siteName', this.value)" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                    <input type="text" value="${appData.config.currency}" onchange="updateConfig('currency', this.value)" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                                    <input type="text" value="${appData.config.timezone}" onchange="updateConfig('timezone', this.value)" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Application Behavior -->
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="sliders" class="w-5 h-5"></i>
+                                Application Behavior
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Maintenance Mode</label>
+                                        <p class="text-xs text-gray-500">Temporarily disable the application</p>
+                                    </div>
+                                    <input type="checkbox" ${appData.config.maintenanceMode ? "checked" : ""} 
+                                           onchange="updateConfig('maintenanceMode', this.checked)"
+                                           class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Products Per Session</label>
+                                    <input type="number" value="${appData.config.maxProductsPerSession}" 
+                                           onchange="updateConfig('maxProductsPerSession', parseInt(this.value))" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+                                        <input type="number" value="${appData.config.priceRange.min}" 
+                                               onchange="updatePriceRange('min', parseFloat(this.value))" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+                                        <input type="number" value="${appData.config.priceRange.max}" 
+                                               onchange="updatePriceRange('max', parseFloat(this.value))" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Summary -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5"></i>
+                            Current Configuration
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <div class="text-sm font-medium text-gray-600 mb-2">Application</div>
+                                <div class="space-y-1 text-sm">
+                                    <div><strong>Site:</strong> ${appData.config.siteName}</div>
+                                    <div><strong>Currency:</strong> ${appData.config.currency}</div>
+                                    <div><strong>Timezone:</strong> ${appData.config.timezone}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-600 mb-2">Limits</div>
+                                <div class="space-y-1 text-sm">
+                                    <div><strong>Max Products:</strong> ${appData.config.maxProductsPerSession}</div>
+                                    <div><strong>Price Range:</strong> $${appData.config.priceRange.min} - $${appData.config.priceRange.max}</div>
+                                    <div><strong>Maintenance:</strong> ${appData.config.maintenanceMode ? "Enabled" : "Disabled"}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-600 mb-2">Collections</div>
+                                <div class="space-y-1">
+                                    ${appData.config.featuredCollections
+                                      .map(
+                                        (collection) => `
+                                        <span class="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">${collection}</span>
+                                    `,
+                                      )
+                                      .join(" ")}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      // Utility functions
+      function goToApp() {
+        window.location.href = "/";
+      }
+
+      function refreshData() {
+        const refreshBtn = event.target;
+        refreshBtn.innerHTML =
+          '<i data-lucide="refresh-cw" class="w-4 h-4 loading"></i> Refreshing...';
+
+        setTimeout(() => {
+          loadData();
+          renderContent();
+          refreshBtn.innerHTML =
+            '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh';
+          lucide.createIcons();
+        }, 1000);
+      }
+
+      function exportData(type) {
+        const timestamp = new Date().toISOString().split("T")[0];
+        let data, filename, mimeType;
+
+        switch (type) {
+          case "complete":
+            data = JSON.stringify(appData, null, 2);
+            filename = `swipeshop_complete_${timestamp}.json`;
+            mimeType = "application/json";
+            break;
+          case "interactions":
+            data = convertToCSV(
+              appData.interactions.map((i) => ({
+                productId: i.productId,
+                action: i.action,
+                timestamp: i.timestamp.toISOString(),
+                date: i.timestamp.toLocaleDateString(),
+                time: i.timestamp.toLocaleTimeString(),
+              })),
+            );
+            filename = `interactions_${timestamp}.csv`;
+            mimeType = "text/csv";
+            break;
+          case "products":
+            data = convertToCSV(
+              appData.products.map((p) => ({
+                id: p.id,
+                title: p.title,
+                price: p.price,
+                collection: p.collection,
+                vendor: p.vendor,
+                available: p.available,
+              })),
+            );
+            filename = `products_${timestamp}.csv`;
+            mimeType = "text/csv";
+            break;
+        }
+
+        downloadFile(data, filename, mimeType);
+      }
+
+      function convertToCSV(data) {
+        if (data.length === 0) return "";
+        const headers = Object.keys(data[0]);
+        const csvContent = [
+          headers.join(","),
+          ...data.map((row) =>
+            headers
+              .map((header) => {
+                const value = row[header];
+                if (typeof value === "string" && value.includes(",")) {
+                  return `"${value}"`;
+                }
+                return value;
+              })
+              .join(","),
+          ),
+        ].join("\\n");
+        return csvContent;
+      }
+
+      function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      function clearAllData() {
+        if (
+          confirm(
+            "Are you sure you want to delete ALL data? This action cannot be undone.",
+          )
+        ) {
+          localStorage.clear();
+          appData = {
+            products: [],
+            interactions: [],
+            sessions: [],
+            stats: [],
+            config: {
+              siteName: "SwipeShop",
+              currency: "USD",
+              timezone: "UTC",
+              maintenanceMode: false,
+              maxProductsPerSession: 50,
+              featuredCollections: ["Electronics", "Fashion", "Home"],
+              priceRange: { min: 0, max: 1000 },
+            },
+            lastUpdated: new Date(),
+          };
+          renderContent();
+          alert("All data has been cleared.");
+        }
+      }
+
+      function updateConfig(key, value) {
+        appData.config[key] = value;
+        appData.lastUpdated = new Date();
+        saveData();
+      }
+
+      function updatePriceRange(type, value) {
+        appData.config.priceRange[type] = value;
+        appData.lastUpdated = new Date();
+        saveData();
+      }
+
+      function addNewProduct() {
+        const title = prompt("Product Title:");
+        if (!title) return;
+
+        const price = parseFloat(prompt("Price:") || "0");
+        const collection = prompt("Collection:") || "General";
+        const vendor = prompt("Vendor:") || "Unknown";
+
+        const newProduct = {
+          id: Date.now().toString(),
+          title,
+          price,
+          collection,
+          vendor,
+          description: title,
+          available: true,
+          images: [],
+        };
+
+        appData.products.push(newProduct);
+        appData.lastUpdated = new Date();
+        saveData();
+        renderContent();
+      }
+
+      function editProduct(productId) {
+        const product = appData.products.find((p) => p.id === productId);
+        if (!product) return;
+
+        const newTitle = prompt("Product Title:", product.title);
+        if (newTitle === null) return;
+
+        const newPrice = parseFloat(
+          prompt("Price:", product.price.toString()) ||
+            product.price.toString(),
+        );
+        const newCollection =
+          prompt("Collection:", product.collection) || product.collection;
+        const newVendor = prompt("Vendor:", product.vendor) || product.vendor;
+
+        product.title = newTitle;
+        product.price = newPrice;
+        product.collection = newCollection;
+        product.vendor = newVendor;
+
+        appData.lastUpdated = new Date();
+        saveData();
+        renderContent();
+      }
+
+      function deleteProduct(productId) {
+        if (confirm("Are you sure you want to delete this product?")) {
+          appData.products = appData.products.filter((p) => p.id !== productId);
+          appData.stats = appData.stats.filter(
+            (s) => s.productId !== productId,
+          );
+          appData.interactions = appData.interactions.filter(
+            (i) => i.productId !== productId,
+          );
+          appData.lastUpdated = new Date();
+          saveData();
+          renderContent();
+        }
+      }
+
+      // Initialize the application
+      function init() {
+        loadData();
+        renderNavigation();
+        renderContent();
+      }
+
+      // Start the application
+      init();
+    </script>
+  </body>
+</html>
