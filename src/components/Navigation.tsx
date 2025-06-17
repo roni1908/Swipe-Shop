@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Heart,
-  BarChart3,
-  Filter,
-  Sparkles,
-  ShoppingCart,
-  Star,
-} from "lucide-react";
+import { Heart, Filter, Sparkles, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
