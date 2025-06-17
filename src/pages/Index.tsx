@@ -11,8 +11,6 @@ import {
 import { ProductCard } from "@/components/ProductCard";
 import { FilterPanel } from "@/components/FilterPanel";
 import { Navigation } from "@/components/Navigation";
-import { StatsPage } from "@/components/StatsPage";
-import { DetailedStatsPage } from "@/components/DetailedStatsPage";
 import { CartPage } from "@/components/CartPage";
 import { FavoritesPage } from "@/components/FavoritesPage";
 import { useProductStats } from "@/hooks/useProductStats";
@@ -197,7 +195,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<
-    "discover" | "stats" | "detailed-stats"
+    "discover" | "cart" | "favorites"
   >("discover");
   const [products, setProducts] = useState<Product[]>([]);
   const [shuffledProducts] = useState<Product[]>(() =>
