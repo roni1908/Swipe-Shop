@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Heart,
-  BarChart3,
   Filter,
   Sparkles,
   ShoppingCart,
@@ -12,12 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface NavigationProps {
-  currentView: "discover" | "stats" | "cart" | "favorites";
-  onViewChange: (view: "discover" | "stats" | "cart" | "favorites") => void;
+  currentView: "discover" | "cart" | "favorites";
+  onViewChange: (view: "discover" | "cart" | "favorites") => void;
   onFilterToggle: () => void;
   cartItemCount?: number;
   favoritesCount?: number;
-  onDetailedStats?: () => void;
 }
 
 export const Navigation = ({
@@ -26,11 +24,10 @@ export const Navigation = ({
   onFilterToggle,
   cartItemCount = 0,
   favoritesCount = 0,
-  onDetailedStats,
 }: NavigationProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const handleViewChange = (view: "discover" | "stats" | "filters") => {
+  const handleViewChange = (view: "discover" | "cart" | "favorites") => {
     if (view === currentView) return;
 
     setIsAnimating(true);
@@ -76,16 +73,6 @@ export const Navigation = ({
                   <Filter className="w-4 h-4" />
                 </Button>
               )}
-              {currentView === "stats" && onDetailedStats && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onDetailedStats}
-                  className="hover:bg-pink-50 text-pink-600 text-xs"
-                >
-                  View Details
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -95,22 +82,7 @@ export const Navigation = ({
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-pink-100 z-50">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center justify-around">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleViewChange("discover")}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-2 rounded-xl transition-all duration-200 ${
-                currentView === "discover"
-                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
-                  : "text-gray-500 hover:text-pink-600 hover:bg-pink-50"
-              }`}
-              disabled={isAnimating}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span className="text-xs font-medium">Discover</span>
             </Button>
-
-            <Button
               variant="ghost"
               size="sm"
               onClick={() => handleViewChange("favorites")}
@@ -154,20 +126,7 @@ export const Navigation = ({
               <span className="text-xs font-medium">Cart</span>
             </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleViewChange("stats")}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-2 rounded-xl transition-all duration-200 ${
-                currentView === "stats"
-                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
-                  : "text-gray-500 hover:text-pink-600 hover:bg-pink-50"
-              }`}
-              disabled={isAnimating}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="text-xs font-medium">Stats</span>
-            </Button>
+
           </div>
         </div>
       </div>
