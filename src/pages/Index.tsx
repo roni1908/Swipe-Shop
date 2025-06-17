@@ -349,34 +349,6 @@ const Index = () => {
     );
   }
 
-  if (currentView === "stats") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-        <Navigation
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          onFilterToggle={() => setIsFilterOpen(true)}
-          cartItemCount={getCartItemCount()}
-          favoritesCount={favorites.length}
-          onDetailedStats={() => setCurrentView("detailed-stats")}
-        />
-        <StatsPage stats={stats} totalStats={getTotalStats()} />
-      </div>
-    );
-  }
-
-  if (currentView === "detailed-stats") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-        <DetailedStatsPage
-          stats={stats}
-          totalStats={getTotalStats()}
-          onBack={() => setCurrentView("stats")}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <Navigation
@@ -385,7 +357,6 @@ const Index = () => {
         onFilterToggle={() => setIsFilterOpen(true)}
         cartItemCount={getCartItemCount()}
         favoritesCount={favorites.length}
-        onDetailedStats={() => setCurrentView("detailed-stats")}
       />
 
       {/* Cart and Favorites Functional Indicators */}
