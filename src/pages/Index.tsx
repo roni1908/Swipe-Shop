@@ -15,6 +15,7 @@ import { CartPage } from "@/components/CartPage";
 import { FavoritesPage } from "@/components/FavoritesPage";
 import { useNavigate } from "react-router-dom";
 import { useCartAndFavorites } from "@/hooks/useCartAndFavorites";
+import { useProductStats } from "@/hooks/useProductStats";
 import { Product, FilterOptions, SwipeDirection } from "@/lib/types";
 import { mockProducts } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
@@ -211,6 +212,7 @@ const Index = () => {
   const [hasSeenAllProducts, setHasSeenAllProducts] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const { addInteraction } = useProductStats();
   const {
     addToCart,
     addToFavorites,
@@ -275,6 +277,7 @@ const Index = () => {
         return;
     }
 
+    addInteraction(currentProduct.id, action);
     setCurrentImageIndex(0); // Reset image index for next product
     setCurrentProductIndex((prev) => {
       const newIndex = prev + 1;
