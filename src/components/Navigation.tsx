@@ -25,16 +25,17 @@ export const Navigation = ({
   onFilterToggle,
   cartItemCount = 0,
   favoritesCount = 0,
-  onDetailedStats,
 }: NavigationProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const handleViewChange = (view: "discover" | "stats" | "filters") => {
+  const handleViewChange = (view: "discover" | "filters") => {
     if (view === currentView) return;
 
     setIsAnimating(true);
     setTimeout(() => {
-      onViewChange(view);
+      if (view !== "filters") {
+        onViewChange(view);
+      }
       setIsAnimating(false);
     }, 150);
   };
