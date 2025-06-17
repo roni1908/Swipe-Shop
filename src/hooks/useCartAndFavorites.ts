@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Product } from "@/lib/types";
 
 export interface CartItem {
@@ -12,9 +12,52 @@ export interface FavoriteItem {
   addedAt: Date;
 }
 
+// Helper functions for localStorage
+const getStoredData = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    if (item) {
+      const parsed = JSON.parse(item);
+      // Convert date strings back to Date objects
+      if (Array.isArray(parsed)) {
+        return parsed.map((item: any) => ({
+          ...item,
+          addedAt: new Date(item.addedAt),
+        })) as T;
+      }
+      return parsed;
+    }
+  } catch (error) {
+    console.warn(`Error loading ${key} from localStorage:`, error);
+  }
+  return defaultValue;
+};
+
+const setStoredData = <T>(key: string, data: T): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn(`Error saving ${key} to localStorage:`, error);
+  }
+};
+
 export const useCartAndFavorites = () => {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() =>
+    getStoredData<CartItem[]>("swipeshop-cart", []),
+  );
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() =>
+    getStoredData<FavoriteItem[]>("swipeshop-favorites", []),
+  );
+
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    setStoredData("swipeshop-cart", cart);
+  }, [cart]);
+
+  // Persist favorites to localStorage whenever they change
+  useEffect(() => {
+    setStoredData("swipeshop-favorites", favorites);
+  }, [favorites]);
 
   const addToCart = useCallback((product: Product, quantity: number = 1) => {
     setCart((prev) => {
