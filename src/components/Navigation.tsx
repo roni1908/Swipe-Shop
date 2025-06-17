@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Heart,
-  Filter,
-  Sparkles,
-  ShoppingCart,
-  Star,
-} from "lucide-react";
+import { Heart, Filter, Sparkles, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -82,7 +76,22 @@ export const Navigation = ({
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-pink-100 z-50">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center justify-around">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewChange("discover")}
+              className={`flex flex-col items-center gap-1 h-auto py-2 px-2 rounded-xl transition-all duration-200 ${
+                currentView === "discover"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
+                  : "text-gray-500 hover:text-pink-600 hover:bg-pink-50"
+              }`}
+              disabled={isAnimating}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-xs font-medium">Discover</span>
             </Button>
+
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => handleViewChange("favorites")}
@@ -125,8 +134,6 @@ export const Navigation = ({
               </div>
               <span className="text-xs font-medium">Cart</span>
             </Button>
-
-
           </div>
         </div>
       </div>
