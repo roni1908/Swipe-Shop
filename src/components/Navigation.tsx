@@ -12,12 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface NavigationProps {
-  currentView: "discover" | "stats" | "cart" | "favorites";
-  onViewChange: (view: "discover" | "stats" | "cart" | "favorites") => void;
+  currentView: "discover" | "cart" | "favorites";
+  onViewChange: (view: "discover" | "cart" | "favorites") => void;
   onFilterToggle: () => void;
   cartItemCount?: number;
   favoritesCount?: number;
-  onDetailedStats?: () => void;
 }
 
 export const Navigation = ({
