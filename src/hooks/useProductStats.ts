@@ -1,9 +1,54 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ProductStats, UserInteraction } from "@/lib/types";
 
+const STATS_STORAGE_KEY = "swipeshop_stats";
+const INTERACTIONS_STORAGE_KEY = "swipeshop_interactions";
+
 export const useProductStats = () => {
-  const [stats, setStats] = useState<ProductStats[]>([]);
-  const [interactions, setInteractions] = useState<UserInteraction[]>([]);
+  const [stats, setStats] = useState<ProductStats[]>(() => {
+    try {
+      const saved = localStorage.getItem(STATS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [interactions, setInteractions] = useState<UserInteraction[]>(() => {
+    try {
+      const saved = localStorage.getItem(INTERACTIONS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((interaction: any) => ({
+          ...interaction,
+          timestamp: new Date(interaction.timestamp),
+        }));
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist to localStorage whenever stats or interactions change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
+    } catch (error) {
+      console.error("Failed to save stats:", error);
+    }
+  }, [stats]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        INTERACTIONS_STORAGE_KEY,
+        JSON.stringify(interactions),
+      );
+    } catch (error) {
+      console.error("Failed to save interactions:", error);
+    }
+  }, [interactions]);
 
   const addInteraction = useCallback(
     (productId: string, action: "like" | "dislike" | "Love It") => {
@@ -73,11 +118,19 @@ export const useProductStats = () => {
     );
   }, [stats]);
 
+  const clearAllStats = useCallback(() => {
+    setStats([]);
+    setInteractions([]);
+    localStorage.removeItem(STATS_STORAGE_KEY);
+    localStorage.removeItem(INTERACTIONS_STORAGE_KEY);
+  }, []);
+
   return {
     stats,
     interactions,
     addInteraction,
     getProductStats,
     getTotalStats,
+    clearAllStats,
   };
 };
