@@ -351,17 +351,24 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       {/* Temporary Dashboard Access Button */}
-      <motion.button
-        onClick={() => navigate("/analytics-dashboard-full")}
-        className="fixed top-20 left-4 z-40 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium"
+      <motion.div
+        className="fixed top-20 left-4 z-40"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 1 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
       >
-        📊 Dashboard
-      </motion.button>
+        <motion.button
+          onClick={() => navigate("/analytics-dashboard-full")}
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          📊 Analytics Dashboard
+        </motion.button>
+        <div className="mt-1 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center">
+          🚧 Temporal
+        </div>
+      </motion.div>
 
       <Navigation
         currentView={currentView}
