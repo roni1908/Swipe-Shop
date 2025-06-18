@@ -11,12 +11,11 @@ import {
 import { ProductCard } from "@/components/ProductCard";
 import { FilterPanel } from "@/components/FilterPanel";
 import { Navigation } from "@/components/Navigation";
-import { StatsPage } from "@/components/StatsPage";
-import { DetailedStatsPage } from "@/components/DetailedStatsPage";
 import { CartPage } from "@/components/CartPage";
 import { FavoritesPage } from "@/components/FavoritesPage";
-import { useProductStats } from "@/hooks/useProductStats";
+import { useNavigate } from "react-router-dom";
 import { useCartAndFavorites } from "@/hooks/useCartAndFavorites";
+import { useProductStats } from "@/hooks/useProductStats";
 import { Product, FilterOptions, SwipeDirection } from "@/lib/types";
 import { mockProducts } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
@@ -196,8 +195,9 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<
-    "discover" | "stats" | "detailed-stats"
+    "discover" | "cart" | "favorites"
   >("discover");
   const [products, setProducts] = useState<Product[]>([]);
   const [shuffledProducts] = useState<Product[]>(() =>
@@ -212,7 +212,7 @@ const Index = () => {
   const [hasSeenAllProducts, setHasSeenAllProducts] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { addInteraction, getTotalStats, stats } = useProductStats();
+  const { addInteraction } = useProductStats();
   const {
     addToCart,
     addToFavorites,
@@ -351,43 +351,34 @@ const Index = () => {
     );
   }
 
-  if (currentView === "stats") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-        <Navigation
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          onFilterToggle={() => setIsFilterOpen(true)}
-          cartItemCount={getCartItemCount()}
-          favoritesCount={favorites.length}
-          onDetailedStats={() => setCurrentView("detailed-stats")}
-        />
-        <StatsPage stats={stats} totalStats={getTotalStats()} />
-      </div>
-    );
-  }
-
-  if (currentView === "detailed-stats") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-        <DetailedStatsPage
-          stats={stats}
-          totalStats={getTotalStats()}
-          onBack={() => setCurrentView("stats")}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      {/* Temporary Dashboard Access Button */}
+      <motion.div
+        className="fixed top-20 left-4 z-40"
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 1 }}
+      >
+        <motion.button
+          onClick={() => navigate("/analytics-dashboard-full")}
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          📊 Analytics Dashboard
+        </motion.button>
+        <div className="mt-1 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center">
+          🚧 Temporal
+        </div>
+      </motion.div>
+
       <Navigation
         currentView={currentView}
         onViewChange={setCurrentView}
         onFilterToggle={() => setIsFilterOpen(true)}
         cartItemCount={getCartItemCount()}
         favoritesCount={favorites.length}
-        onDetailedStats={() => setCurrentView("detailed-stats")}
       />
 
       {/* Cart and Favorites Functional Indicators */}

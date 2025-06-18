@@ -1,9 +1,52 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ProductStats, UserInteraction } from "@/lib/types";
 
+// Helper functions for localStorage
+const getStoredData = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    if (item) {
+      const parsed = JSON.parse(item);
+      // Convert date strings back to Date objects for interactions
+      if (key.includes("interactions") && Array.isArray(parsed)) {
+        return parsed.map((interaction: any) => ({
+          ...interaction,
+          timestamp: new Date(interaction.timestamp),
+        })) as T;
+      }
+      return parsed;
+    }
+  } catch (error) {
+    console.warn(`Error loading ${key} from localStorage:`, error);
+  }
+  return defaultValue;
+};
+
+const setStoredData = <T>(key: string, data: T): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn(`Error saving ${key} to localStorage:`, error);
+  }
+};
+
 export const useProductStats = () => {
-  const [stats, setStats] = useState<ProductStats[]>([]);
-  const [interactions, setInteractions] = useState<UserInteraction[]>([]);
+  const [stats, setStats] = useState<ProductStats[]>(() =>
+    getStoredData<ProductStats[]>("swipeshop-stats", []),
+  );
+  const [interactions, setInteractions] = useState<UserInteraction[]>(() =>
+    getStoredData<UserInteraction[]>("swipeshop-interactions", []),
+  );
+
+  // Persist stats to localStorage whenever they change
+  useEffect(() => {
+    setStoredData("swipeshop-stats", stats);
+  }, [stats]);
+
+  // Persist interactions to localStorage whenever they change
+  useEffect(() => {
+    setStoredData("swipeshop-interactions", interactions);
+  }, [interactions]);
 
   const addInteraction = useCallback(
     (productId: string, action: "like" | "dislike" | "Love It") => {
@@ -73,11 +116,17 @@ export const useProductStats = () => {
     );
   }, [stats]);
 
+  const clearStats = useCallback(() => {
+    setStats([]);
+    setInteractions([]);
+  }, []);
+
   return {
     stats,
     interactions,
     addInteraction,
     getProductStats,
     getTotalStats,
+    clearStats,
   };
 };
