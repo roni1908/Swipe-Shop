@@ -13,7 +13,6 @@ import { FilterPanel } from "@/components/FilterPanel";
 import { Navigation } from "@/components/Navigation";
 import { CartPage } from "@/components/CartPage";
 import { FavoritesPage } from "@/components/FavoritesPage";
-import { StorageDebug } from "@/components/StorageDebug";
 import { useNavigate } from "react-router-dom";
 import { useCartAndFavorites } from "@/hooks/useCartAndFavorites";
 import { useProductStats } from "@/hooks/useProductStats";
@@ -580,9 +579,6 @@ const Index = () => {
         filters={filters}
         onFiltersChange={setFilters}
       />
-
-      {/* Temporary Storage Debug */}
-      <StorageDebug />
     </div>
   );
 };
